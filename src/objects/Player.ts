@@ -1,6 +1,7 @@
 import { Scene, Physics } from 'phaser';
 import { Crystal } from './Crystal';
 import { Game } from '../scenes/Game';
+import { CrystalCounter } from './CrystalCounter';
 
 export class Player extends Physics.Arcade.Sprite {
     constructor(scene: Scene, x: number, y: number, texture: string) {
@@ -103,7 +104,16 @@ export class Player extends Physics.Arcade.Sprite {
                     x: endX,
                     y: endY,
                     duration: 200,
-                    ease: 'Bounce.easeInOut'
+                    hold: 200,
+                    ease: 'Bounce.easeInOut',
+                    onComplete: () => {
+                        // Enable collision detection after the animation is complete
+                        scene.physics.add.overlap(scene.player, newCrystal, scene.handlePlayerCrystalCollision, undefined, scene);
+
+                            // Enable overlap detection for collecting crystals
+                        const crystalCounter = this.scene.crystalCounter as CrystalCounter;
+                        crystalCounter.enableOverlapDetection();
+                    }
                 });
             }
             crystal.incrementSpawnedCopies();

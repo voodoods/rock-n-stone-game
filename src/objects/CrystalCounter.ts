@@ -21,13 +21,16 @@ export class CrystalCounter {
             orange: 0
         };
 
-        // Set up overlap detection for collecting crystals
-        this.scene.physics.add.overlap(this.player, this.crystals, this.collectCrystal, undefined, this);
 
         // Create text objects for the counters
         this.blueText = this.scene.add.text(this.scene.scale.width - 150, 20, 'Blue: 0', { fontSize: '20px', fill: '#0000ff' });
         this.greenText = this.scene.add.text(this.scene.scale.width - 150, 50, 'Green: 0', { fontSize: '20px', fill: '#00ff00' });
         this.orangeText = this.scene.add.text(this.scene.scale.width - 150, 80, 'Orange: 0', { fontSize: '20px', fill: '#ffa500' });
+    }
+
+    public enableOverlapDetection(): void {
+        // Set up overlap detection for collecting crystals
+        this.scene.physics.add.overlap(this.player, this.crystals, this.collectCrystal, undefined, this);
     }
 
     private collectCrystal(player: Player, crystal: Crystal) {

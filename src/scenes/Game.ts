@@ -10,6 +10,7 @@ export class Game extends Scene {
     private spaceKey!: Phaser.Input.Keyboard.Key;
     private collidingCrystal: Crystal | null = null;
     private lastSpaceKeyPressTime: number = 0;
+    public crystalCounter!: CrystalCounter;
 
     constructor() {
         super('Game');
@@ -69,7 +70,7 @@ export class Game extends Scene {
         }
 
          // Initialize the CrystalCounter
-         new CrystalCounter(this, this.player, this.crystals);
+         this.crystalCounter = new CrystalCounter(this, this.player, this.crystals);
     }
 
     update() {

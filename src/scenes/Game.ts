@@ -44,12 +44,16 @@ export class Game extends Scene {
         const crystalColors: CrystalColor[] = ['blue', 'green', 'orange'];
         const numCrystals = Phaser.Math.Between(4, 10);
         const occupiedPositions: Phaser.Geom.Rectangle[] = [];
+        // Define crystal dimensions
+
+        const crystalWidth = Crystal.frameWidth;
+        const crystalHeight = Crystal.frameHeight;
 
         for (let i = 0; i < numCrystals; i++) {
             let x: number, y: number, isInsidePlayerSpawnArea, isOccupied;
             do {
-                x = Phaser.Math.Between(0, this.scale.width);
-                y = Phaser.Math.Between(0, this.scale.height);
+                x = Phaser.Math.Between(crystalWidth / 2, this.scale.width - crystalWidth / 2);
+                y = Phaser.Math.Between(crystalHeight / 2, this.scale.height - crystalHeight / 2);        
 
                 isInsidePlayerSpawnArea = playerSpawnArea.contains(x, y);
                 isOccupied = occupiedPositions.some(pos => pos.contains(x, y));

@@ -10,11 +10,13 @@ export class Crystal extends GameObjects.Sprite {
     private static readonly MAX_COPIES = 2;
     private collider?: Phaser.Physics.Arcade.Collider;
     public collected: boolean = false;
+    public static frameWidth: number = 80;
+    public static frameHeight: number = 80;
 
     public static preloadAssets(scene: Scene): void {
         scene.load.spritesheet('crystals', 'assets/crystals.png', {
-            frameWidth: 80,
-            frameHeight: 80,
+            frameWidth: this.frameWidth,
+            frameHeight: this.frameHeight,
         });
     }
 

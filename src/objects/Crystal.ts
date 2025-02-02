@@ -38,7 +38,7 @@ export class Crystal extends GameObjects.Sprite {
         this.setFrameForState('rawOre');
 
         // Remove collision if the state is not "oreRock"
-        if (this.collider) {
+        if (this.collider && this.scene) {
             this.scene.physics.world.removeCollider(this.collider);
         }
     }

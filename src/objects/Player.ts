@@ -1,6 +1,6 @@
 import { Scene, Physics } from 'phaser';
 import { Crystal } from './Crystal';
-import { LevelOne } from '../scenes/LevelOne';
+import { Game } from '../scenes/Game';
 
 export class Player extends Physics.Arcade.Sprite {
     constructor(scene: Scene, x: number, y: number, texture: string) {
@@ -78,7 +78,7 @@ export class Player extends Physics.Arcade.Sprite {
     public mineOre(crystal: Crystal): void {
         if (crystal.crystalState === 'oreRock' && crystal.canSpawnMoreCopies()) {
             // Spawn two more copies of the crystal
-            const scene = this.scene as LevelOne;
+            const scene = this.scene as Game;
             const radius = 100;
             const frameSize = 80; // Size of a single frame
     

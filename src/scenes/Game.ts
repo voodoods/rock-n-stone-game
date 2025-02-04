@@ -26,8 +26,8 @@ export class Game extends Scene {
         this.cameras.main.setBackgroundColor('#888888');
 
         this.player = new Player(this, 100, 100, 'dwarf');
-        this.cursorKeys = this.input.keyboard.createCursorKeys();
-        this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.cursorKeys = this.input.keyboard!.createCursorKeys();
+        this.spaceKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         // Define the player's spawn area as a rectangle
         const playerSpawnPadding = 50;
@@ -63,6 +63,9 @@ export class Game extends Scene {
             const color = Phaser.Math.RND.pick(crystalColors) as CrystalColor;
             const crystal = new Crystal(this, x, y, color);
             this.crystals.add(crystal);
+
+            // Add the new crystal's position to the occupied positions list
+            occupiedPositions.push(new Phaser.Geom.Rectangle(x - crystalWidth / 2, y - crystalHeight / 2, crystalWidth, crystalHeight));
 
             // Only apply collider to initially created crystals
             const collider = this.physics.add.collider(this.player, crystal, this.handlePlayerCrystalCollision, undefined, this);

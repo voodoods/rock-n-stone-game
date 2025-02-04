@@ -78,25 +78,35 @@ export class Player extends Physics.Arcade.Sprite {
 
     public mineOre(crystal: Crystal): void {
         if (crystal.crystalState === 'oreRock' && crystal.canSpawnMoreCopies()) {
-            // Spawn two more copies of the crystal
             const scene = this.scene as Game;
             const radius = 100;
             const frameSize = 80; // Size of a single frame
+            const occupiedPositions: Phaser.Geom.Rectangle[] = [];
+    
+            // Add existing crystal positions to occupiedPositions
+            scene.crystals.getChildren().forEach((existingCrystal: Phaser.GameObjects.GameObject) => {
+                const existing = existingCrystal as Crystal;
+                occupiedPositions.push(new Phaser.Geom.Rectangle(existing.x - frameSize / 2, existing.y - frameSize / 2, frameSize, frameSize));
+            });
     
             for (let i = 0; i < 2; i++) {
-                let endX, endY;
+                let endX: number, endY: number, isOccupied: boolean;
                 do {
                     const angle = Phaser.Math.DegToRad(Phaser.Math.Between(0, 360));
                     endX = crystal.x + radius * Math.cos(angle);
                     endY = crystal.y + radius * Math.sin(angle);
+    
+                    isOccupied = occupiedPositions.some(pos => pos.contains(endX, endY));
                 } while (
                     endX < frameSize / 2 || 
                     endX > scene.scale.width - frameSize / 2 || 
                     endY < frameSize / 2 || 
-                    endY > scene.scale.height - frameSize / 2
+                    endY > scene.scale.height - frameSize / 2 ||
+                    isOccupied
                 );
     
                 const newCrystal = scene.spawnCrystal(crystal.x, crystal.y, crystal.color, 'rawOre');
+                occupiedPositions.push(new Phaser.Geom.Rectangle(endX - frameSize / 2, endY - frameSize / 2, frameSize, frameSize));
     
                 // Animate the new crystal to its end position with a falling motion
                 scene.tweens.add({
@@ -108,9 +118,14 @@ export class Player extends Physics.Arcade.Sprite {
                     ease: 'Bounce.easeInOut',
                     onComplete: () => {
                         // Enable collision detection after the animation is complete
-                        scene.physics.add.overlap(scene.player, newCrystal, scene.handlePlayerCrystalCollision, undefined, scene);
-
-                            // Enable overlap detection for collecting crystals
+                        scene.physics.add.overlap(
+                            scene.player, newCrystal, 
+                            scene.handlePlayerCrystalCollision, 
+                            undefined, 
+                            scene
+                        );
+    
+                        // Enable overlap detection for collecting crystals
                         const crystalCounter = this.scene.crystalCounter as CrystalCounter;
                         crystalCounter.enableOverlapDetection();
                     }

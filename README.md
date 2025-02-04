@@ -1,4 +1,6 @@
-# Rock'n'Stone
+# Rock'n'Stone Game
+
+![screenshot](./public/assets/logo.png)
 
 Heads up, dwarf! You are one a mission to collect precious minerals in the depths of the galactic mines. But beware! There are dangers in these caves, luring in the dark, hunting for young miners like yourself. Deal with them like a real dwarf! We're counting on you, miner. Rock and Stone. 
 

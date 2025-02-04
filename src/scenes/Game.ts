@@ -98,8 +98,8 @@ export class Game extends Scene {
             targets: crystal,
             x: player.x,
             y: player.y,
-            duration: 200,
-            ease: 'Power2',
+            duration: 100,
+            ease: 'Expo.in',
             onComplete: () => {
                 crystal.destroy();
             }

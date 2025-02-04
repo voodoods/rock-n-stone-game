@@ -109,17 +109,16 @@ export class Player extends Physics.Arcade.Sprite {
                 occupiedPositions.push(new Phaser.Geom.Rectangle(endX - frameSize / 2, endY - frameSize / 2, frameSize, frameSize));
     
                 // Animate the new crystal to its end position with a falling motion
+
                 scene.tweens.add({
                     targets: newCrystal,
-                    x: endX,
-                    y: endY,
-                    duration: 200,
-                    hold: 200,
-                    ease: 'Bounce.easeInOut',
+                    x: { value: endX, duration: 500, hold: 500, ease: 'Power2' },
+                    y: { value: endY, duration: 500, ease: 'Bounce.easeOut' },
                     onComplete: () => {
                         // Enable collision detection after the animation is complete
                         scene.physics.add.overlap(
-                            scene.player, newCrystal, 
+                            scene.player, 
+                            newCrystal, 
                             scene.handlePlayerCrystalCollision, 
                             undefined, 
                             scene

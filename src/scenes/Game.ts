@@ -2,6 +2,7 @@ import { Scene } from 'phaser';
 import { Player } from '../objects/Player';
 import { Crystal, CrystalColor, CrystalState } from '../objects/Crystal';
 import { CrystalCounter } from '../objects/CrystalCounter';
+import { Bug } from '../objects/Bug';
 
 export class Game extends Scene {
     private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -11,6 +12,7 @@ export class Game extends Scene {
     private collidingCrystal: Crystal | null = null;
     private lastSpaceKeyPressTime: number = 0;
     public crystalCounter!: CrystalCounter;
+    public bugs: Bug[] = [];
 
     constructor() {
         super('Game');
@@ -19,6 +21,8 @@ export class Game extends Scene {
     preload() {
         Player.preloadAssets(this);
         Crystal.preloadAssets(this);
+        Bug.preloadAssets(this);
+        
     }
 
     create() {
@@ -72,8 +76,18 @@ export class Game extends Scene {
             crystal.setCollider(collider);
         }
 
-         // Initialize the CrystalCounter
-         this.crystalCounter = new CrystalCounter(this, this.player, this.crystals);
+        // Initialize the CrystalCounter
+        this.crystalCounter = new CrystalCounter(this, this.player, this.crystals);
+        // Create a physics group for bugs
+        this.bugs = this.physics.add.group();
+
+        // Spawn bugs at the start of the game
+        this.spawnBugs();
+
+        // Set up collisions
+        this.physics.add.collider(this.player, this.bugs, this.handlePlayerBugCollision, undefined, this);
+        this.physics.add.collider(this.bugs, this.bugs); // Add collision between bugs
+        this.physics.add.collider(this.bugs, this.crystals, this.handleBugCrystalCollision, undefined, this);
     }
 
     update() {
@@ -84,6 +98,9 @@ export class Game extends Scene {
             this.player.mineOre(this.collidingCrystal);
             this.lastSpaceKeyPressTime = currentTime;
         }
+    
+        // Update each bug
+        this.bugs.getChildren().forEach((bug: Bug) => bug.update());
     }
 
     private handlePlayerCrystalCollision(_player: Player, crystal: Crystal) {
@@ -111,5 +128,37 @@ export class Game extends Scene {
         crystal.setFrameForState(state);
         this.crystals.add(crystal);
         return crystal;
+    }
+
+    private spawnBugs() {
+        const bugCount = Phaser.Math.Between(3, 6);
+        const edge = Phaser.Math.Between(0, 3); // 0: top, 1: right, 2: bottom, 3: left
+    
+        for (let i = 0; i < bugCount; i++) {
+            let x: number, y: number;
+    
+            switch (edge) {
+                case 0: // Top edge
+                    x = Phaser.Math.Between(0, this.scale.width);
+                    y = 0;
+                    break;
+                case 1: // Right edge
+                    x = this.scale.width;
+                    y = Phaser.Math.Between(0, this.scale.height);
+                    break;
+                case 2: // Bottom edge
+                    x = Phaser.Math.Between(0, this.scale.width);
+                    y = this.scale.height;
+                    break;
+                case 3: // Left edge
+                    x = 0;
+                    y = Phaser.Math.Between(0, this.scale.height);
+                    break;
+            }
+    
+            const bug = new Bug(this, x, y, 'bug', this.player);
+            bug.setImmovable(true); // Make the bug immovable
+            this.bugs.add(bug);
+        }
     }
 }

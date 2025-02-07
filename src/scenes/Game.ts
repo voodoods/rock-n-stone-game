@@ -12,17 +12,16 @@ export class Game extends Scene {
     private collidingCrystal: Crystal | null = null;
     private lastSpaceKeyPressTime: number = 0;
     public crystalCounter!: CrystalCounter;
-    public bugs: Bug[] = [];
+    public bugs!: Phaser.Physics.Arcade.Group;
 
     constructor() {
-        super('Game');
+        super({ key: 'Game' });
     }
 
     preload() {
         Player.preloadAssets(this);
         Crystal.preloadAssets(this);
         Bug.preloadAssets(this);
-        
     }
 
     create() {
@@ -50,7 +49,6 @@ export class Game extends Scene {
         const numCrystals = Phaser.Math.Between(4, 10);
         const occupiedPositions: Phaser.Geom.Rectangle[] = [];
         // Define crystal dimensions
-
         const crystalWidth = Crystal.frameWidth;
         const crystalHeight = Crystal.frameHeight;
 
@@ -79,10 +77,14 @@ export class Game extends Scene {
         // Initialize the CrystalCounter
         this.crystalCounter = new CrystalCounter(this, this.player, this.crystals);
         // Create a physics group for bugs
-        this.bugs = this.physics.add.group();
+        this.bugs = this.physics.add.group({
+            classType: Bug,
+            runChildUpdate: true
+        });
 
-        // Spawn bugs at the start of the game
-        this.spawnBugs();
+        // Add bugs to the group
+        this.bugs.add(new Bug(this, 200, 200, 'bug', this.player));
+        this.bugs.add(new Bug(this, 300, 300, 'bug', this.player));
 
         // Set up collisions
         this.physics.add.collider(this.player, this.bugs, this.handlePlayerBugCollision, undefined, this);
@@ -100,7 +102,9 @@ export class Game extends Scene {
         }
     
         // Update each bug
-        this.bugs.getChildren().forEach((bug: Bug) => bug.update());
+        this.bugs.children.iterate((bug: Bug) => {
+            bug.update();
+        });
     }
 
     private handlePlayerCrystalCollision(_player: Player, crystal: Crystal) {

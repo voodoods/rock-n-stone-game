@@ -1,17 +1,32 @@
 import { Scene, Physics } from 'phaser';
+import { HealthBar } from './HealthBar';
 import { Crystal } from './Crystal';
 import { Game } from '../scenes/Game';
 import { CrystalCounter } from './CrystalCounter';
+import { Bug } from './Bug';
+import { bounceBack } from '../utils/AnimationUtils';
 
 export class Player extends Physics.Arcade.Sprite {
+    public health: number;
+    public attack: number;
+    private attackTimer: Phaser.Time.TimerEvent | null = null;
+    private healthBar: HealthBar;
+    private spaceKey: Phaser.Input.Keyboard.Key;
+
     constructor(scene: Scene, x: number, y: number, texture: string) {
         super(scene, x, y, texture);
+
+        this.health = 100;
+        this.attack = 10;
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
-         // Now it's safe to use physics-related methods
-         this.initAnimations();
+        this.spaceKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.healthBar = new HealthBar(scene, x - 100, y - 100); // Adjust position to be atop the player frame
+
+        // Now it's safe to use physics-related methods
+        this.initAnimations();
     }
 
     // Static method to load assets
@@ -52,28 +67,43 @@ export class Player extends Physics.Arcade.Sprite {
     }
 
     public update(cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys): void {
-        if (!this.body) {
-            // Guard clause to ensure physics body is available
-            return;
+        // Handle player movement
+        if (cursorKeys.left.isDown) {
+            this.setVelocityX(-160);
+            this.anims.play('walk-left', true);
+        } else if (cursorKeys.right.isDown) {
+            this.setVelocityX(160);
+            this.anims.play('walk-right', true);
+        } else {
+            this.setVelocityX(0);
         }
 
-            this.setVelocity(0);
-    
-            if (cursorKeys.down.isDown) {
-                this.setVelocityY(200);
-                this.anims.play('walk-down', true);
-            } else if (cursorKeys.left.isDown) {
-                this.setVelocityX(-200);
-                this.anims.play('walk-left', true);
-            } else if (cursorKeys.right.isDown) {
-                this.setVelocityX(200);
-                this.anims.play('walk-right', true);
-            } else if (cursorKeys.up.isDown) {
-                this.setVelocityY(-200);
-                this.anims.play('walk-up', true);
-            } else {
-                this.anims.stop();
+        if (cursorKeys.up.isDown) {
+            this.setVelocityY(-160);
+            this.anims.play('walk-up', true);
+        } else if (cursorKeys.down.isDown) {
+            this.setVelocityY(160);
+            this.anims.play('walk-down', true);
+        } else {
+            this.setVelocityY(0);
+        }
+
+        // Stop animation if no movement
+        if (this.body.velocity.x === 0 && this.body.velocity.y === 0) {
+            this.anims.stop();
+        }
+
+        // Update health bar position
+        this.healthBar.setHealth(this.health);
+        this.healthBar.bar.setPosition(this.x - 20, this.y - 40); // Adjust position to be atop the player frame
+
+        // Handle player attack
+        if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+            const bug = this.scene.physics.closest(this, this.scene.bugs.getChildren()) as Bug;
+            if (bug && this.isFacingBug(bug)) { // Check if the player is facing the bug
+                this.attackBug(bug);
             }
+        }
     }
 
     public mineOre(crystal: Crystal): void {
@@ -134,23 +164,96 @@ export class Player extends Physics.Arcade.Sprite {
         }
     
         crystal.mine();
-        this.bounceBack(crystal);
+        bounceBack(this.scene, this, crystal);
     
         console.log('Mined ore!');
+
+        if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+            const bug = this.scene.physics.closest(this, this.scene.bugs.getChildren()) as Bug;
+            if (bug && Phaser.Math.Distance.Between(this.x, this.y, bug.x, bug.y) < 100) { // Adjust the threshold as needed
+                this.attackBug(bug);
+            }
+        }
     }
 
-    private bounceBack(crystal: Crystal): void {
-        const direction = new Phaser.Math.Vector2(this.x - crystal.x, this.y - crystal.y).normalize();
-        const bounceDistance = 10;
-        const bounceDuration = 50;
-    
+    public takeDamage(amount: number): void {
+        // Implement the logic to reduce player's health
+        this.health -= amount;
+        if (this.health <= 0) {
+            this.health = 0;
+            this.die();
+        }
+        this.healthBar.setHealth((this.health / 100) * 100); // Convert to percentage
+    }
+
+    private die(): void {
+        // Implement the logic for player's death
+        this.health = 0; // Ensure health is set to 0
+        this.setFrame(12); // Set to the 13th column (index 12)
+        this.anims.stop();
+        this.scene.physics.pause(); // Pause the entire physics world
+
+        // Check if the overlay already exists
+        if (!this.scene.data.get('gameOverOverlay')) {
+            // Add Game Over overlay
+            const { width, height } = this.scene.scale;
+            const overlay = this.scene.add.graphics();
+            overlay.fillStyle(0x000000, 0.4); // 40% opacity
+            overlay.fillRect(0, 0, width, height);
+
+            this.scene.add.text(width / 2, height / 2, 'Game Over', {
+                fontSize: '64px',
+                color: '#ffffff'
+            }).setOrigin(0.5);
+
+            // Store a flag indicating the overlay has been added
+            this.scene.data.set('gameOverOverlay', true);
+
+            this.scene.input.keyboard.once('keydown-SPACE', () => {
+                this.scene.scene.restart(); // Restart the Game scene
+            });
+        }
+    }
+
+    public attackBug(bug: Bug): void {
+        if (bug.health > 0 && this.isFacingBug(bug)) { // Ensure the bug is alive and the player is facing the bug
+            bug.takeDamage(this.attack);
+            this.playAttackAnimation();
+            bounceBack(this.scene, bug, this);
+        }
+    }
+
+    private isFacingBug(bug: Bug): boolean {
+        const dx = bug.x - this.x;
+        const dy = bug.y - this.y;
+
+        if (!this.anims.currentAnim) {
+            return false; // If no animation is playing, return false
+        }
+
+        switch (this.anims.currentAnim.key) {
+            case 'walk-right':
+                return dx > 0 && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) < 100;
+            case 'walk-left':
+                return dx < 0 && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) < 100;
+            case 'walk-down':
+                return dy > 0 && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) < 120;
+            case 'walk-up':
+                return dy < 0 && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) < 120;
+            default:
+                return false;
+        }
+    }
+
+    private playAttackAnimation() {
+        // Play attack animation here
         this.scene.tweens.add({
             targets: this,
-            x: this.x + direction.x * bounceDistance,
-            y: this.y + direction.y * bounceDistance,
-            duration: bounceDuration,
-            ease: 'Power2',
-            yoyo: true
+            scaleX: 1.2,
+            scaleY: 1.2,
+            duration: 200,
+            yoyo: true,
+            ease: 'Power2'
         });
     }
 }

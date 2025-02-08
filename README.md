@@ -155,3 +155,14 @@ Created by [Phaser Studio](mailto:support@phaser.io). Powered by coffee, anime, 
 The Phaser logo and characters are &copy; 2011 - 2024 Phaser Studio Inc.
 
 All rights reserved.
+
+___
+
+## Contribution to used assets
+
+_Title Screen_
+* **[Mystical Magical Crystal Cavern](https://www.deviantart.com/midgptjourney/art/mystical-magical-crystal-cavern-958081557)** by midgptjourney (released under [Creative Commons Attribution-NoDerivatives 3.0 License](https://creativecommons.org/licenses/by-nd/3.0/deed.en))
+* **[Relic Pickaxe](https://www.deviantart.com/balduranne/art/Relic-Pickaxe-770931671)** by Baluranne (released under [Creative Commons Attribution-NoDerivatives 3.0 License](https://creativecommons.org/licenses/by-nd/3.0/deed.en))
+
+_Main Game_
+TODO

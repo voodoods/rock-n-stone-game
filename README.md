@@ -165,4 +165,6 @@ _Title Screen_
 * **[Relic Pickaxe](https://www.deviantart.com/balduranne/art/Relic-Pickaxe-770931671)** by Baluranne (released under [Creative Commons Attribution-NoDerivatives 3.0 License](https://creativecommons.org/licenses/by-nd/3.0/deed.en))
 
 _Main Game_
-TODO
+* **[Dwarf](https://www.spriters-resource.com/mobile/finalfantasydimensions/sheet/148769/)** by Deathbringer (released under Custom License, see [The Srpiters Rsource >> User Agreemment >> Use of Content](https://www.spriters-resource.com/page/agreement/))
+* **[LPC Beetle](https://opengameart.org/content/lpc-beetle)** by Stephen Challener (Redshrike) (released under [OpenGameArt.org Attribution 3.0](https://opengameart.org/content/oga-by-30-faq))
+* TODO: Crystals

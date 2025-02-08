@@ -167,4 +167,4 @@ _Title Screen_
 _Main Game_
 * **[Dwarf](https://www.spriters-resource.com/mobile/finalfantasydimensions/sheet/148769/)** by Deathbringer (released under Custom License, see [The Srpiters Rsource >> User Agreemment >> Use of Content](https://www.spriters-resource.com/page/agreement/))
 * **[LPC Beetle](https://opengameart.org/content/lpc-beetle)** by Stephen Challener (Redshrike) (released under [OpenGameArt.org Attribution 3.0](https://opengameart.org/content/oga-by-30-faq))
-* TODO: Crystals
+* **[48 Free Minerals Pixel Art Icons Pack](https://craftpix.net/freebies/free-minerals-pixel-art-icons/)** by CraftPix (released under [CraftPix License](https://craftpix.net/file-licenses/))

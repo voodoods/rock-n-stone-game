@@ -1,6 +1,6 @@
-import { Scene, Physics } from 'phaser';
+import { Scene, Physics, GameObjects } from 'phaser';
 import { HealthBar } from './HealthBar';
-import { Crystal } from './Crystal';
+import { Crystal, CrystalColor, CrystalState } from './Crystal';
 import { Game } from '../scenes/Game';
 import { CrystalCounter } from './CrystalCounter';
 import { Bug } from './Bug';
@@ -107,7 +107,7 @@ export class Player extends Physics.Arcade.Sprite {
     }
 
     public mineOre(crystal: Crystal): void {
-        if (crystal.crystalState === 'oreRock' && crystal.canSpawnMoreCopies()) {
+        if (crystal.crystalState === CrystalState.OreRockHit && crystal.canSpawnMoreCopies()) {
             const scene = this.scene as Game;
             const radius = 100;
             const frameSize = 80; // Size of a single frame
@@ -135,11 +135,11 @@ export class Player extends Physics.Arcade.Sprite {
                     isOccupied
                 );
     
-                const newCrystal = scene.spawnCrystal(crystal.x, crystal.y, crystal.color, 'rawOre');
+                const newCrystal = this.spawnCrystal(crystal.x, crystal.y, crystal.color, CrystalState.RawOre);
+                newCrystal.collectable = false; // Set collectable to false initially
                 occupiedPositions.push(new Phaser.Geom.Rectangle(endX - frameSize / 2, endY - frameSize / 2, frameSize, frameSize));
     
                 // Animate the new crystal to its end position with a falling motion
-
                 scene.tweens.add({
                     targets: newCrystal,
                     x: { value: endX, duration: 500, hold: 500, ease: 'Power2' },
@@ -157,6 +157,8 @@ export class Player extends Physics.Arcade.Sprite {
                         // Enable overlap detection for collecting crystals
                         const crystalCounter = this.scene.crystalCounter as CrystalCounter;
                         crystalCounter.enableOverlapDetection();
+    
+                        newCrystal.collectable = true; // Set collectable to true after animation
                     }
                 });
             }
@@ -164,10 +166,13 @@ export class Player extends Physics.Arcade.Sprite {
         }
     
         crystal.mine();
+        if (crystal.crystalState === 'rawOre') {
+            this.collectCrystal(crystal);
+        }
         bounceBack(this.scene, this, crystal);
     
         console.log('Mined ore!');
-
+    
         if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
             const bug = this.scene.physics.closest(this, this.scene.bugs.getChildren()) as Bug;
             if (bug && Phaser.Math.Distance.Between(this.x, this.y, bug.x, bug.y) < 100) { // Adjust the threshold as needed
@@ -255,5 +260,30 @@ export class Player extends Physics.Arcade.Sprite {
             yoyo: true,
             ease: 'Power2'
         });
+    }
+
+    public collectCrystal(crystal: Crystal): void {
+        if (!crystal.collectable) {
+            return; // Do not collect if the crystal is not collectable
+        }
+
+        // Animate the crystal being drawn to the player's position
+        this.scene.tweens.add({
+            targets: crystal,
+            x: this.x,
+            y: this.y,
+            duration: 100,
+            ease: 'Expo.in',
+            onComplete: () => {
+                crystal.destroy();
+            }
+        });
+    }
+
+    public spawnCrystal(x: number, y: number, color: CrystalColor, state: CrystalState): Crystal {
+        const crystal = new Crystal(this.scene, x, y, color);
+        crystal.setFrameForState(state);
+        (this.scene as any).crystals.add(crystal); // Assuming crystals is a group in the scene
+        return crystal;
     }
 }

@@ -108,30 +108,9 @@ export class Game extends Scene {
     }
 
     private handlePlayerCrystalCollision(_player: Player, crystal: Crystal) {
-        if(crystal.crystalState === 'oreRock') {
+        if(crystal.crystalState === CrystalState.OreRock) {
             this.collidingCrystal = crystal;
         }
-    }
-
-    public collectCrystal(player: Player, crystal: Crystal) {
-        // Animate the crystal being drawn to the player's position
-        this.tweens.add({
-            targets: crystal,
-            x: player.x,
-            y: player.y,
-            duration: 100,
-            ease: 'Expo.in',
-            onComplete: () => {
-                crystal.destroy();
-            }
-        });
-    }
-
-    public spawnCrystal(x: number, y: number, color: CrystalColor, state: CrystalState): Crystal {
-        const crystal = new Crystal(this, x, y, color);
-        crystal.setFrameForState(state);
-        this.crystals.add(crystal);
-        return crystal;
     }
 
     private spawnBugs() {

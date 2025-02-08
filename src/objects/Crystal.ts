@@ -1,7 +1,11 @@
 import { Scene, GameObjects } from 'phaser';
 
 export type CrystalColor = 'blue' | 'green' | 'orange';
-export type CrystalState = 'rawOre' | 'oreRock' | 'castOreBar';
+export enum CrystalState {
+    OreRock = 'oreRock',
+    OreRockHit = 'oreRockHit',
+    RawOre = 'rawOre'
+}
 
 export class Crystal extends GameObjects.Sprite {
     public color: 'blue' | 'green' | 'orange';
@@ -10,8 +14,10 @@ export class Crystal extends GameObjects.Sprite {
     private static readonly MAX_COPIES = 2;
     private collider?: Phaser.Physics.Arcade.Collider;
     public collected: boolean = false;
-    public static frameWidth: number = 80;
-    public static frameHeight: number = 80;
+    public collectable: boolean = false; // Add this line
+    public static frameWidth: number = 30;
+    public static frameHeight: number = 30;
+    private hitCount: number = 0;
 
     public static preloadAssets(scene: Scene): void {
         scene.load.spritesheet('crystals', 'assets/crystals.png', {
@@ -30,23 +36,22 @@ export class Crystal extends GameObjects.Sprite {
         const body = this.body as Phaser.Physics.Arcade.Body;
         body.immovable = true;
 
-        const scaleFactor = 35 / 80;
-        this.setScale(scaleFactor);
-
-        this.setFrameForState('oreRock');
+        this.setFrameForState(CrystalState.OreRock);
     }
 
     public mine(): void {
-        this.setFrameForState('rawOre');
+        this.hitCount++;
 
-        // Remove collision if the state is not "oreRock"
-        if (this.collider && this.scene) {
-            this.scene.physics.world.removeCollider(this.collider);
+        if (this.hitCount === 1) {
+            this.setFrameForState(CrystalState.OreRockHit);
+        } else if (this.hitCount >= 2) {
+            this.setFrameForState(CrystalState.RawOre);
+
+            // Remove collision if the state is not "oreRock"
+            if (this.collider && this.scene) {
+                this.scene.physics.world.removeCollider(this.collider);
+            }
         }
-    }
-
-    public cast(): void {
-        this.setFrameForState('castOreBar');
     }
 
     public setFrameForState(state: CrystalState): void {
@@ -56,19 +61,18 @@ export class Crystal extends GameObjects.Sprite {
         this.crystalState = state;
 
         switch (state) {
-            case 'rawOre':
+            case CrystalState.OreRockHit:
                 columnIndex = 1;
                 break;
-            case 'castOreBar':
+            case CrystalState.RawOre:
                 columnIndex = 2;
                 break;
             default:
                 columnIndex = 0;
+                break;
         }
 
-        // Calculate the frame index based on the new layout
-        const frameIndex = colorOffset * 3 + columnIndex;
-        this.setFrame(frameIndex);
+        this.setFrame(colorOffset * 3 + columnIndex);
     }
 
     private getColorOffset(): number {
